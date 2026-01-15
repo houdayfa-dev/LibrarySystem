@@ -44,10 +44,19 @@ void MainMenu()
 int ReadNumberInRange(int From, int To)
 {
     int Number = 0;
+    bool ShowWrongMessage = false;
 
     do {
+
+        if (ShowWrongMessage) {
+            cout << "Wrong Number, The number must be between ("
+                << From << "-" << To << ")" << endl;
+        }
+            
         BookCategoryMenu();
         cin >> Number;
+
+        ShowWrongMessage = true;
 
     } while (Number < From || Number > To);
 
@@ -211,7 +220,7 @@ int main()
 
         MainMenu();
 
-        Number = ReadNumberInRange2(1, 4);
+        Number = ReadNumberInRange(1, 4);
 
         enMenuOperation Operation = GetOpration(Number);
 
@@ -247,7 +256,7 @@ int main()
     BookCategoryMenu();
 
 
-    int Number = ReadNumberInRange2(1, 4);
+    int Number = ReadNumberInRange(1, 4);
 
     enBookCategory Category = ConvertNumberToEnum(Number);
 
