@@ -1,266 +1,248 @@
 #include <iostream>
+#include <vector>
 #include <string>
+#include <limits>
 
 using namespace std;
 
-enum enMenuOperation { Print = 1, OldestBook = 2, AvailableBook = 3, Exit = 4 };
-enum enBookCategory { Fiction = 1, NonFiction = 2, Science = 3, Biography = 4 };
-
-struct strBookData
+enum enOperations { PrintAllBooks = 1, PrintAvailableBooks, PrintOldestBook };
+enum enCategories { Fiction = 1, NonFiction, Science, Biography};
+struct strBook
 {
-    string Title;
-    string Author;
-    enBookCategory Category;
-    int YearPublished;
-    bool Availability;
+    string Title = "";
+    string Author ="";
+    enCategories Category;
+    int PublishedYear = 0;
+    bool isAvailable = false;
 };
-
-void BookCategoryMenu()
+struct strBooks
+{
+    int HowManyBooks = 0;
+    vector <strBook> vBookList;
+};
+void CategoryMenu()
 {
     cout << "************************\n";
 
-    cout << "Book Category Menu\n";
-    cout << "1- Fiction\n";
-    cout << "2- Non Fiction\n";
-    cout << "3- Science\n";
-    cout << "4- Biography\n";
+    cout << "** Category Menu **\n\n";
+    cout << "[1].Fiction\n";
+    cout << "[2].Non Fiction\n";
+    cout << "[3].Science\n";
+    cout << "[4].Biography\n";
 
     cout << "************************\n";
-    cout << "Choose a number between(1-4)\n";
-
+    
 }
-void MainMenu()
+void OperationsMenu()
 {
-    cout << "\n***Menu***\n";
-    cout << "1- Print All Books\n";
-    cout << "2- Show the oldest book\n";
-    cout << "3- Show how many books are available\n";
-    cout << "4- Exit\n";
+    cout << "\n** Operations Menu **\n\n";
+    cout << "[1].Show All Books\n";
+    cout << "[2].ShowAvailableBooks\n";
+    cout << "[3].ShowOldestBook\n";
+
     cout << "*******************\n";
 
-    cout << "Choose a number:\n";
 }
+void CleanBuffer()
+{
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+}
+void ReadValidInt(std::string Message, int& Number)
+{
+    std::cout << Message;
+    std::cin >> Number;
 
-int ReadNumberInRange(int From, int To)
+    while (std::cin.fail())
+    {
+        std::cin.clear();
+        CleanBuffer();
+        std::cout << "Invalid Number, plz enter a valid one:\n";
+        std::cin >> Number;
+    }
+
+}
+void InvalidNumber_ErrorMessage(int From, int To)
+{
+    std::cout << "Wrong Number, The number must be between ("
+        << From << "-" << To << ")\n";
+
+}
+int ReadIntInRange(std::string Message, int From, int To)
 {
     int Number = 0;
-    bool ShowWrongMessage = false;
+    bool isInValid = false;
 
     do {
 
-        if (ShowWrongMessage) {
-            cout << "Wrong Number, The number must be between ("
-                << From << "-" << To << ")" << endl;
+        if (isInValid) {
+            InvalidNumber_ErrorMessage(From, To);
         }
-            
-        BookCategoryMenu();
-        cin >> Number;
 
-        ShowWrongMessage = true;
+        ReadValidInt(Message, Number);
+
+        isInValid = true;
 
     } while (Number < From || Number > To);
 
     return Number;
 }
-
-enBookCategory ConvertNumberToEnum(int Num)
+strBook ReadOneBook()
 {
-    return (enBookCategory)Num;
+    strBook Book;
+    char Answer = 'Y';
+
+    cout << "Title: ";
+    getline(cin>>ws, Book.Title);
+
+    cout << "Author: ";
+    getline(cin, Book.Author);
+
+    CategoryMenu();
+    Book.Category = (enCategories)ReadIntInRange("Choose a number: ", 1, 4);
+
+    ReadValidInt("Published year: ", Book.PublishedYear);
+
+    cout << "Is the book still available? Y/N ?\n";
+    cin >> Answer;
+    Book.isAvailable = (Answer == 'Y' || Answer == 'y');
+
+    return Book;
 }
-
-strBookData ReadBookData()
+strBooks ReadAllBooks()
 {
-    strBookData Data;
+    strBooks Books;
+    strBook TempBook;
 
-    cout << "Plz enter the book title:\n";
-    cin.ignore();
-    getline(cin, Data.Title);
+    ReadValidInt("How many books would you like to add: ", Books.HowManyBooks);
 
-    cout << "Plz enter the book author:\n";
-    getline(cin, Data.Author);
-
-    int CategoryChoice = ReadNumberInRange(1, 4);
-
-    Data.Category = ConvertNumberToEnum(CategoryChoice);
-
-    cout << "Plz enter the year that the book has been published in:\n";
-    cin >> Data.YearPublished;
-
-    cout << "Is the book available:(Y/N)\n";
-    char A = ' ';
-    cin >> A;
-
-    Data.Availability = (A == 'Y' || A == 'y');
-
-    return Data;
-
-}
-void ReadAllBooks(strBookData Books[5])
-{
-    for (int i = 0; i < 5;i++) {
-
-        cout << "Book Number" << i + 1 << "'s info:\n";
-        Books[i] = ReadBookData();
-    }
-
-
-}
-
-string CategoryAsString(enBookCategory Category)
-{
-    switch (Category)
+    for (int i = 0; i < Books.HowManyBooks;i++) 
     {
-    case enBookCategory::Fiction:
-        return "Fiction";
+        cout << "\nEnter book" << i + 1 << " info\n";
+        TempBook = ReadOneBook();
 
-    case enBookCategory::NonFiction:
-        return "Non Fiction";
+        Books.vBookList.push_back(TempBook);
 
-    case enBookCategory::Biography:
-        return "Biography";
-
-    case enBookCategory::Science:
-        return "Science";
-
-    default:
-        return "Unknow Category";
-    }
-}
-
-string AvailabilityAsString(bool istrue)
-{
-    if (istrue)
-        return "Yes";
-    else
-        return "No";
-}
-
-void PrintBook(strBookData Book)
-{
-    string Category = CategoryAsString(Book.Category);
-
-    string Available = AvailabilityAsString(Book.Availability);
-
-    cout << "Book Title: " << Book.Title << endl;
-    cout << "Book Author: " << Book.Author << endl;
-    cout << "Book Category: " << Category << endl;
-    cout << "Publishing Year: " << Book.YearPublished << endl;
-    cout << "Available: " << Available << endl;
-}
-void PrintAllBooks(strBookData Books[5])
-{
-    for (int i = 0; i < 5;i++) {
-
-        cout << "\n************************\n";
-        PrintBook(Books[i]);
     }
 
+    cout << endl;
+
+    return Books;
 }
-
-string ShowOldestBook(strBookData Books[5])
+string CategoryAsText(enCategories Category)
 {
-    string OldestBook = Books[0].Title;
-    int OldestBookYearPublished = Books[0].YearPublished;
+    string ArrCategory[4] = { "Fiction","NonFiction","Science","Biography" };
 
-    for (int i = 1; i < 5;i++) {
+    return ArrCategory[Category - 1];
+}
+string Availability(bool Answer)
+{
+    return (Answer) ? "Yes" : "No";
+}
+void ShowOneBook(const strBook& Book,int BookNumber)
+{
+    cout << "\nBook" << BookNumber << " info:\n\n";
+    cout << "Title: " << Book.Title << endl;
+    cout << "Author: " << Book.Author << endl;
+    cout << "Category: " << CategoryAsText(Book.Category) << endl;
+    cout << "Publishing Year: " << Book.PublishedYear << endl;
+    cout << "Availability: " << Availability(Book.isAvailable) << endl;
+}
+void ShowAllBooks(const vector <strBook>& vBookList)
+{
+    cout << "\nBooks list:\n";
+    for (int i = 0; i < vBookList.size();i++) 
+    {
+        ShowOneBook(vBookList[i], i + 1);
 
-        if (Books[i].YearPublished < OldestBookYearPublished) {
+    }
+    cout <<endl<< endl;
+}
+void AvailableBooks(const vector <strBook>& vBookList)
+{
+    bool isAvailable = false;
 
-            OldestBookYearPublished = Books[i].YearPublished;
-            OldestBook = Books[i].Title;
+    cout << "\nAvailable Books list:\n";
+    for (const strBook& Book : vBookList) {
+
+        if (Book.isAvailable) {
+            isAvailable = true;
+            cout << Book.Title << "\n";
+        }
+            
+    }
+
+    if (!isAvailable)
+        cout << "\nThere aren't any available books at this time :-(\n";
+
+    cout << endl;
+}
+void OldestBook(const vector <strBook>& vBookList)
+{
+    string OldestBookName = vBookList[0].Title;
+    int OldestB_PublishedYear = vBookList[0].PublishedYear;
+
+    for (int i = 1;i < vBookList.size();i++) {
+
+        if (vBookList[i].PublishedYear < OldestB_PublishedYear) {
+
+            OldestBookName = vBookList[i].Title;
+            OldestB_PublishedYear = vBookList[i].PublishedYear;
         }
 
     }
 
-    return OldestBook;
-
+    cout << "\nThe oldest book:\n";
+    cout << "Title: " << OldestBookName << endl;
+    cout << "Published Year: " << OldestB_PublishedYear << endl;
+    cout << endl;
 }
-int CountAvailableBooks(strBookData Books[5])
+void OperationsProcess(const vector <strBook>& vBookList,enOperations Choice)
 {
-    int Counter = 0;
+    switch (Choice)
+    {
+    case enOperations::PrintAllBooks:
+        ShowAllBooks(vBookList);
+        break;
+    case enOperations::PrintAvailableBooks:
+        AvailableBooks(vBookList);
+        break;
+    case enOperations::PrintOldestBook:
+        OldestBook(vBookList);
+        break;
 
-    for (int i = 0;i < 5;i++) {
+    default:"\nWrong Choice\n";
 
-        if (Books[i].Availability)
-            Counter++;
     }
 
-    return Counter;
-
 }
-
-string ShowBooksSameCategory(strBookData Books[5], enBookCategory Category)
+void StartProgram()
 {
-    string Result = "";
+    strBooks Books;
+    char isContinue = 'Y';
+    enOperations Choice;
 
-    for (int i = 0;i < 5;i++) {
+    do {
 
-        if (Books[i].Category == Category)
+        Books = ReadAllBooks();
+        OperationsMenu();
+        Choice = (enOperations)ReadIntInRange("Choose a number between(1-4): ", 1, 4);
+        OperationsProcess(Books.vBookList, Choice);
 
-            Result += Books[i].Title + "\n";
-    }
+        cout << "Do you want to continue? Y/N ? ";
+        cin >> isContinue;
 
-    return Result;
+    } while (isContinue == 'Y' || isContinue == 'y');
 
-}
+    cout << "Have a nice day, Bey Bey\n";
 
-enMenuOperation GetOpration(int Num)
-{
-    return (enMenuOperation)Num;
+
 }
 
 int main()
 {
-    strBookData Books[5];
-    ReadAllBooks(Books);
+    StartProgram();
 
-    int Number = 0;
-
-    do {
-
-        MainMenu();
-
-        Number = ReadNumberInRange(1, 4);
-
-        enMenuOperation Operation = GetOpration(Number);
-
-        switch (Operation) {
-
-        case enMenuOperation::Print:
-            PrintAllBooks(Books);
-            break;
-
-        case enMenuOperation::OldestBook:
-            cout << "\n****************\n";
-            cout << "The oldest book: "
-                << ShowOldestBook(Books) << endl;
-            break;
-
-        case enMenuOperation::AvailableBook:
-            cout << "\n****************\n";
-            cout << "Available books: "
-                << CountAvailableBooks(Books);
-            break;
-
-        case enMenuOperation::Exit:
-            break;
-
-        default: break;
-        }
-
-    } while (Number != 4);
-
-    cout << "\n****************\n";
-    cout << "Have a nice day, Bey Bey\n";
-
-    BookCategoryMenu();
-
-
-    int Number = ReadNumberInRange(1, 4);
-
-    enBookCategory Category = ConvertNumberToEnum(Number);
-
-    cout << ShowBooksSameCategory(Books, Category) << endl;
+    
 
     return 0;
 }
